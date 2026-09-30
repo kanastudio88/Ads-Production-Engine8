@@ -1,0 +1,201 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Registered user account with authentication profile, assigned desk, and prepress role.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Firebase Auth UID" },
+        "name": { "type": "string", "description": "Full name of the user" },
+        "email": { "type": "string", "description": "User email address" },
+        "role": { "type": "string", "description": "Production or editorial role" },
+        "desk": { "type": "string", "description": "Assigned desk or terminal" },
+        "seatNumber": { "type": "string", "description": "Assigned seat code (01 - 08 or custom)" },
+        "avatarColor": { "type": "string", "description": "Tailwind avatar color styling" },
+        "createdAt": { "type": "string", "description": "Account creation timestamp" }
+      },
+      "required": ["id", "name", "email", "role", "desk"]
+    },
+    "TeamMember": {
+      "title": "TeamMember",
+      "description": "Represents an authorized production desk operator and seat presence.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique user or seat identifier" },
+        "seatNumber": { "type": "string", "description": "Assigned seat code (01 - 08)" },
+        "name": { "type": "string", "description": "Full name of the team member" },
+        "email": { "type": "string", "description": "Official company email address" },
+        "role": { "type": "string", "description": "Editorial or prepress role" },
+        "desk": { "type": "string", "description": "Workstation desk label (DESK 01 - 08)" },
+        "avatarColor": { "type": "string", "description": "Tailwind color class for avatar badge" },
+        "isOnline": { "type": "boolean", "description": "Whether the operator is currently active" },
+        "lastActive": { "type": "string", "description": "Human-readable last active indicator" }
+      },
+      "required": ["id", "seatNumber", "name", "role", "desk", "isOnline"]
+    },
+    "SavedLink": {
+      "title": "SavedLink",
+      "description": "Important external production links, Google Sheets, drives, and reference portals stored in Firebase.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique link identifier" },
+        "title": { "type": "string", "description": "Display title of the link" },
+        "url": { "type": "string", "description": "Full URL destination" },
+        "category": { "type": "string", "description": "Link category classification" },
+        "description": { "type": "string", "description": "Optional notes or instructions" },
+        "addedBy": { "type": "string", "description": "Name or email of the user who added the link" },
+        "addedAt": { "type": "string", "description": "Date or time added" },
+        "isPinned": { "type": "boolean", "description": "Whether link is pinned to quick access bar" }
+      },
+      "required": ["id", "title", "url", "category"]
+    },
+    "AppSetting": {
+      "title": "AppSetting",
+      "description": "Application-wide configuration settings stored in Firebase (such as default traffic sheet link).",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Setting key identifier" },
+        "trafficSheetUrl": { "type": "string", "description": "Master Google Sheet URL for job traffic control" },
+        "updatedAt": { "type": "number", "description": "Last update timestamp" },
+        "updatedBy": { "type": "string", "description": "User who last updated the configuration" }
+      },
+      "required": ["id"]
+    },
+    "JobMetric": {
+      "title": "JobMetric",
+      "description": "Daily newspaper job tracking metrics for an operator across NST, BH, and HM.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "ID of the assigned team member" },
+        "name": { "type": "string", "description": "Operator name" },
+        "role": { "type": "string", "description": "Operator role" },
+        "desk": { "type": "string", "description": "Workstation desk label" },
+        "totalReceived": { "type": "number", "description": "Total jobs received this shift" },
+        "nstCurrent": { "type": "number", "description": "New Straits Times current edition jobs" },
+        "nstAdvanced": { "type": "number", "description": "New Straits Times advanced edition jobs" },
+        "bhCurrent": { "type": "number", "description": "Berita Harian current edition jobs" },
+        "bhAdvanced": { "type": "number", "description": "Berita Harian advanced edition jobs" },
+        "hmCurrent": { "type": "number", "description": "Harian Metro current edition jobs" },
+        "hmAdvanced": { "type": "number", "description": "Harian Metro advanced edition jobs" }
+      },
+      "required": ["userId", "name", "totalReceived"]
+    },
+    "TrafficJob": {
+      "title": "TrafficJob",
+      "description": "A queued artwork or classified notice job in the traffic controller.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique traffic job document ID" },
+        "jobCode": { "type": "string", "description": "Unique publication job tracking code" },
+        "title": { "type": "string", "description": "Notice title or client name" },
+        "publication": { "type": "string", "enum": ["NST", "BH", "HM"], "description": "Target publication" },
+        "category": { "type": "string", "description": "Notice classification type" },
+        "assignedTo": { "type": "string", "description": "Assigned operator name" },
+        "status": { "type": "string", "enum": ["PENDING", "IN_PROGRESS", "PROOFING", "APPROVED", "RELEASED"], "description": "Workflow stage" },
+        "receivedTime": { "type": "string", "description": "Timestamp or formatted time received" },
+        "deadline": { "type": "string", "description": "Target publication deadline" },
+        "pagePlacement": { "type": "string", "description": "Section or page placement" },
+        "priority": { "type": "string", "enum": ["CRITICAL", "HIGH", "NORMAL"], "description": "Job urgency priority" }
+      },
+      "required": ["id", "jobCode", "title", "publication", "status", "priority"]
+    },
+    "ArchiveRecord": {
+      "title": "ArchiveRecord",
+      "description": "Daily shift archive snapshot summarizing total output and operator metrics.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique archive record ID" },
+        "date": { "type": "string", "description": "Date of the shift (YYYY-MM-DD)" },
+        "timestamp": { "type": "number", "description": "Epoch timestamp in milliseconds" },
+        "totalReceived": { "type": "number", "description": "Sum of all jobs processed in shift" },
+        "currentJobs": { "type": "number", "description": "Total current edition jobs" },
+        "advancedJobs": { "type": "number", "description": "Total advanced edition jobs" },
+        "activeDesks": { "type": "number", "description": "Count of operational desks" },
+        "archivedBy": { "type": "string", "description": "Operator who closed and archived the shift" }
+      },
+      "required": ["id", "date", "timestamp", "totalReceived", "archivedBy"]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "Inter-desk message on the production floor chat channels.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique message ID" },
+        "senderId": { "type": "string", "description": "User or seat ID of the sender" },
+        "senderName": { "type": "string", "description": "Name of the sender" },
+        "senderRole": { "type": "string", "description": "Role of the sender" },
+        "senderSeat": { "type": "string", "description": "Seat number (01 - 08)" },
+        "avatarColor": { "type": "string", "description": "Badge color class" },
+        "message": { "type": "string", "description": "Text message body" },
+        "timestamp": { "type": "string", "description": "Formatted time string" },
+        "channel": { "type": "string", "description": "Channel name (e.g. #production-floor)" },
+        "jobTag": { "type": "string", "description": "Optional associated job code" }
+      },
+      "required": ["id", "senderId", "senderName", "message", "channel"]
+    },
+    "LayoutDocument": {
+      "title": "LayoutDocument",
+      "description": "Active InDesign CS5.5 layout document geometry, copy, and typography settings.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Notice main headline" },
+        "kicker": { "type": "string", "description": "Court banner or kicker header" },
+        "edition": { "type": "string", "description": "Publication edition tag" },
+        "subCategory": { "type": "string", "description": "Case number or sub-category" },
+        "subHeader": { "type": "string", "description": "Subject or matter sub-header" },
+        "bodyText": { "type": "string", "description": "Main legal or advertisement body copy" },
+        "columns": { "type": "number", "description": "Number of text frame columns" },
+        "gutter": { "type": "number", "description": "Column gutter width in millimeters" },
+        "fontFamily": { "type": "string", "description": "Typography typeface family" },
+        "fontSize": { "type": "number", "description": "Body font size in points" },
+        "lineHeight": { "type": "number", "description": "Leading line height in points" },
+        "alignment": { "type": "string", "description": "Paragraph justification alignment" },
+        "borderStyle": { "type": "string", "description": "Frame stroke style" },
+        "borderWidth": { "type": "number", "description": "Frame stroke width in points" },
+        "frameWidth": { "type": "number", "description": "Frame width in millimeters" },
+        "frameHeight": { "type": "number", "description": "Frame height in millimeters" },
+        "posX": { "type": "number", "description": "Horizontal X coordinate in millimeters" },
+        "posY": { "type": "number", "description": "Vertical Y coordinate in millimeters" }
+      },
+      "required": ["title", "frameWidth", "frameHeight"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Registered user accounts and prepress operator profiles."
+    },
+    "/saved_links/{linkId}": {
+      "schema": "SavedLink",
+      "description": "External production links, traffic sheets, and reference URLs stored in Firebase."
+    },
+    "/app_settings/{settingId}": {
+      "schema": "AppSetting",
+      "description": "Global application configuration and shared URLs stored in Firebase."
+    },
+    "/team_members/{memberId}": {
+      "schema": "TeamMember",
+      "description": "Live status, seat assignment, and presence of team members across the 8 production desks."
+    },
+    "/job_metrics/{metricId}": {
+      "schema": "JobMetric",
+      "description": "Daily job summary metrics for each team member across NST, Berita Harian, and Harian Metro."
+    },
+    "/traffic_jobs/{jobId}": {
+      "schema": "TrafficJob",
+      "description": "Traffic control jobs dispatched, queued, and proofed on the production floor."
+    },
+    "/archives/{archiveId}": {
+      "schema": "ArchiveRecord",
+      "description": "End-of-shift daily archive records and audit logs."
+    },
+    "/chat_messages/{messageId}": {
+      "schema": "ChatMessage",
+      "description": "Production floor team chat messages across channels."
+    },
+    "/workspace_docs/{docId}": {
+      "schema": "LayoutDocument",
+      "description": "Shared active layout document states and artwork specifications."
+    }
+  }
+}

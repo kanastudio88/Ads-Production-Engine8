@@ -1,0 +1,146 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidUser(data) {
+      return data.id is string
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 100
+        && data.email is string && data.email.size() > 0 && data.email.size() <= 150
+        && data.role is string && data.role.size() <= 100
+        && data.desk is string && data.desk.size() <= 50;
+    }
+
+    function isValidSavedLink(data) {
+      return data.id is string
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 200
+        && data.url is string && data.url.size() > 0 && data.url.size() <= 1000
+        && data.category is string;
+    }
+
+    function isValidTeamMember(data) {
+      return data.id is string
+        && data.seatNumber is string
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 100
+        && data.role is string && data.role.size() <= 100
+        && data.desk is string && data.desk.size() <= 50
+        && data.isOnline is bool;
+    }
+
+    function isValidJobMetric(data) {
+      return data.userId is string
+        && data.name is string && data.name.size() > 0
+        && data.totalReceived is number && data.totalReceived >= 0;
+    }
+
+    function isValidTrafficJob(data) {
+      return data.id is string
+        && data.jobCode is string && data.jobCode.size() > 0 && data.jobCode.size() <= 100
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 200
+        && data.publication in ['NST', 'BH', 'HM']
+        && data.status in ['PENDING', 'IN_PROGRESS', 'PROOFING', 'APPROVED', 'RELEASED']
+        && data.priority in ['CRITICAL', 'HIGH', 'NORMAL'];
+    }
+
+    function isValidArchiveRecord(data) {
+      return data.id is string
+        && data.date is string
+        && data.timestamp is number
+        && data.totalReceived is number && data.totalReceived >= 0
+        && data.archivedBy is string && data.archivedBy.size() > 0;
+    }
+
+    function isValidChatMessage(data) {
+      return data.id is string
+        && data.senderId is string
+        && data.senderName is string && data.senderName.size() > 0
+        && data.message is string && data.message.size() > 0 && data.message.size() <= 2000
+        && data.channel is string && data.channel.size() > 0;
+    }
+
+    function isValidLayoutDoc(data) {
+      return data.title is string
+        && data.frameWidth is number && data.frameWidth > 0
+        && data.frameHeight is number && data.frameHeight > 0;
+    }
+
+    // Registered user accounts
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidId(userId) && isValidUser(incoming());
+    }
+
+    // Saved external links in Firebase
+    match /saved_links/{linkId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(linkId) && isValidSavedLink(incoming());
+      allow delete: if isSignedIn() && isValidId(linkId);
+    }
+
+    // App settings and master traffic URL
+    match /app_settings/{settingId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidId(settingId);
+    }
+
+    // Team presence
+    match /team_members/{memberId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidId(memberId) && isValidTeamMember(incoming());
+    }
+
+    // Job summary metrics
+    match /job_metrics/{metricId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidId(metricId) && isValidJobMetric(incoming());
+    }
+
+    // Traffic dispatch jobs
+    match /traffic_jobs/{jobId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(jobId) && isValidTrafficJob(incoming());
+      allow delete: if isSignedIn() && isValidId(jobId);
+    }
+
+    // Daily Shift Archives
+    match /archives/{archiveId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(archiveId) && isValidArchiveRecord(incoming());
+      allow update, delete: if false; // Immutable audit logs
+    }
+
+    // Production Floor Team Chat
+    match /chat_messages/{messageId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(messageId) && isValidChatMessage(incoming());
+      allow update, delete: if false;
+    }
+
+    // Shared Workspace Layout Document
+    match /workspace_docs/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidId(docId) && isValidLayoutDoc(incoming());
+    }
+  }
+}
